@@ -1,0 +1,92 @@
+-- How many different nodes make up the Data Bank network?
+
+SELECT 
+    COUNT(DISTINCT node_id) AS Total_Nodes
+FROM
+    customer_nodes
+
+-- How many nodes are there in each region?
+
+SELECT 
+    cn.region_id,
+    r.region_name,
+    COUNT(cn.node_id) AS Total_Nodes
+FROM
+    regions r
+        JOIN
+    customer_nodes cn ON r.region_id = cn.region_id
+GROUP BY cn.region_id , r.region_name
+ORDER BY 1
+
+-- How many customers are divided among the regions?
+
+SELECT 
+    r.region_id,
+    r.region_name,
+    COUNT(cn.customer_id) AS Total_Customer
+FROM
+    regions r
+        JOIN
+    customer_nodes cn ON r.region_id = cn.region_id
+GROUP BY r.region_id , r.region_name
+ORDER BY 1
+
+-- Determine the total amount of transactions for each region name.
+
+SELECT 
+    r.region_id,
+    r.region_name,
+    SUM(ct.txn_amount) AS Total_Amount
+FROM
+    regions r
+        JOIN
+    customer_nodes cn ON r.region_id = cn.region_id
+        JOIN
+    customer_transactions ct ON cn.customer_id = ct.customer_id
+GROUP BY r.region_id , r.region_name
+ORDER BY 1
+
+How long does it take on an average to move clients to a new node?
+-- What is the unique count and total amount for each transaction type?
+
+SELECT 
+    ct.txn_type,
+    COUNT(*) AS unique_transaction,
+    SUM(ct.txn_amount) AS Total_Amount
+FROM
+    customer_transactions ct
+GROUP BY ct.txn_type
+
+-- What is the average number and size of past deposits across all customers?
+
+SELECT 
+    ROUND(COUNT(customer_id) / (SELECT 
+                    COUNT(DISTINCT customer_id)
+                FROM
+                    customer_transactions)) AS Average_deposit_Count
+FROM
+    customer_transactions
+WHERE
+    txn_type = 'deposit'
+
+-- For each month - how many Data Bank customers make more than 1 deposit and at least either 1 purchase or 1 withdrawal in a single month?
+
+with cte_customer_count as (
+SELECT 
+    customer_id,
+    MONTH(txn_date) AS Txn_Month,
+    SUM(IF(txn_type = 'deposit', 1, 0)) AS Deposit_Count,
+    SUM(IF(txn_type = 'purchase', 1, 0)) AS Purchase_Count,
+    SUM(IF(txn_type = 'withdrawal', 1, 0)) AS Withdrawal_Count
+FROM
+    customer_transactions
+group by customer_id, month(txn_date))
+SELECT 
+    Txn_Month, COUNT(DISTINCT customer_id) AS Customer_Count
+FROM
+    cte_customer_count
+WHERE
+    Deposit_Count > 1 AND Purchase_Count = 1
+        OR Withdrawal_Count = 1
+GROUP BY Txn_Month
+
