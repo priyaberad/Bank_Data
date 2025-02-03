@@ -1,0 +1,8 @@
+How many different nodes make up the Data Bank network?
+How many nodes are there in each region?
+How many customers are divided among the regions?
+Determine the total amount of transactions for each region name.
+How long does it take on an average to move clients to a new node?
+What is the unique count and total amount for each transaction type?
+What is the average number and size of past deposits across all customers?
+For each month - how many Data Bank customers make more than 1 deposit and at least either 1 purchase or 1 withdrawal in a single month?
